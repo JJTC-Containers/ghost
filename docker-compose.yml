@@ -1,0 +1,36 @@
+version: '3.1'
+services:
+  ghost:
+    container_name: <YOUR-DOMAIN.TLD>-ghost
+#    image: ghost:alpine
+    build: ./app/
+    restart: unless-stopped
+    environment:
+      - url=https://<YOUR-DOMAIN.TLD>
+    expose:
+      - "2368/tcp"
+    networks:
+      - web
+    labels:
+      - "traefik.frontend.headers.customResponseHeaders=X-Powered-By:Blackhole||X-Server:Blackbox||Expect-CT:enforce; max-age=604800; report-uri=https://<YOUR-ACCOUNT>.report-uri.com/r/d/ct/enforce"
+      - "traefik.frontend.headers.referrerPolicy=strict-origin"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.headers.customBrowserXSSValue=1; mode=block; report=https://<YOUR-ACCOUNT>.report-uri.com/r/d/xss/enforce"
+      - "traefik.frontend.headers.contentSecurityPolicy=default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; img-src 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; report-uri https://<YOUR-ACCOUNT>.report-uri.com/r/d/csp/enforce;"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.STSSeconds=31536000"
+      - "traefik.backend=<YOUR-DOMAIN.TLD>"
+      - "traefik.docker.network=web"
+      - "traefik.frontend.rule=Host:<YOUR-DOMAIN.TLD>"
+      - "traefik.enable=true"
+      - "traefik.port=2368"
+      - "traefik.default.protocol=http"
+    volumes:
+      - ./content:/var/lib/ghost/content
+
+networks:
+  web:
+    external: true
+
+
